@@ -5,4 +5,12 @@
     <RootNamespace>Lex</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Remove="NoSQLiteXDynamics.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="runtime.win7-x64.Microsoft.NETCore.Runtime.CoreCLR" Version="1.1.0" />
+  </ItemGroup>
+
 </Project>
