@@ -164,7 +164,7 @@ namespace Lex
             }
             catch (InvalidCastException e)
             {
-                return false;
+                throw new Exception(e.Message);
             }
         }
 
@@ -209,7 +209,7 @@ namespace Lex
 
                     props[i].SetValue(result, propsConvert[name].GetValue(obj));
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     continue;
                 }
@@ -236,7 +236,7 @@ namespace Lex
 
                     props[i].SetValue(result, propsConvert[name].GetValue(obj));
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     continue;
                 }
@@ -1140,7 +1140,7 @@ namespace Lex
                     var prop = props[i];
                     table.Columns.Add(prop.Name, prop?.PropertyType);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     continue;
                 }
@@ -1158,7 +1158,7 @@ namespace Lex
                     }
                     table.Rows.Add(values);
                 }
-                catch (Exception e)
+                catch (Exception )
                 {
                     continue;
                 }
@@ -1190,7 +1190,7 @@ namespace Lex
 
                         table.Columns.Add(prop.Name, prop?.PropertyType);
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         var prop = props[i];
                         table.Columns.Add(prop.Name,
@@ -1219,8 +1219,7 @@ namespace Lex
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                return new DataTable();
+                throw new Exception(e.Message);
             }
         }
 
@@ -1246,35 +1245,33 @@ namespace Lex
 
             words = NumWords(intPart);
 
-            if (decPart > 0)
+            if (!(decPart > 0)) return words;
+            if (words != "")
+                words += " and ";
+            var counter = decPart.ToString(CultureInfo.InvariantCulture).Length;
+            switch (counter)
             {
-                if (words != "")
-                    words += " and ";
-                var counter = decPart.ToString(CultureInfo.InvariantCulture).Length;
-                switch (counter)
-                {
-                    case 1:
-                        words += NumWords(decPart) + " decimo";
-                        break;
-                    case 2:
-                        words += NumWords(decPart) + " centezimo";
-                        break;
-                    case 3:
-                        words += NumWords(decPart) + " milezimo";
-                        break;
-                    case 4:
-                        words += NumWords(decPart) + " decimo milezimo";
-                        break;
-                    case 5:
-                        words += NumWords(decPart) + " centezimo milezimo";
-                        break;
-                    case 6:
-                        words += NumWords(decPart) + " milionezimo";
-                        break;
-                    case 7:
-                        words += NumWords(decPart) + " decimo milionezimo";
-                        break;
-                }
+                case 1:
+                    words += NumWords(decPart) + " decimo";
+                    break;
+                case 2:
+                    words += NumWords(decPart) + " centezimo";
+                    break;
+                case 3:
+                    words += NumWords(decPart) + " milezimo";
+                    break;
+                case 4:
+                    words += NumWords(decPart) + " decimo milezimo";
+                    break;
+                case 5:
+                    words += NumWords(decPart) + " centezimo milezimo";
+                    break;
+                case 6:
+                    words += NumWords(decPart) + " milionezimo";
+                    break;
+                case 7:
+                    words += NumWords(decPart) + " decimo milionezimo";
+                    break;
             }
             return words;
         }
@@ -1369,7 +1366,7 @@ namespace Lex
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static T CreateInstance<T>()
+        private static T CreateInstance<T>()
         {
             var obj = TypeDescriptor.CreateInstance(null, typeof(T), null, null);
             return (T) obj;
@@ -1382,7 +1379,7 @@ namespace Lex
         /// <typeparam name="TResult"></typeparam>
         /// <param name="data"></param>
         /// <returns></returns>
-        public static List<TResult> From<T, TResult>(this List<T> data) where TResult : T
+        public static List<TResult> From<T, TResult>(this IEnumerable<T> data) where TResult : T
         {
             var props = TypeDescriptor.GetProperties(typeof(T));
             var list = new List<TResult>();
@@ -2043,7 +2040,7 @@ namespace Lex
             {
                 return "0";
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return string.Empty;
             }
@@ -2129,7 +2126,6 @@ namespace Lex
         }
         public static string RemoveCharAndRight(this string src, char chr)
         {
-            if (chr == null) return src;
             var ret = src ?? string.Empty;
             if (string.IsNullOrEmpty(ret)) return string.Empty;
             if (!ret.Contains(chr)) return ret;
@@ -2137,8 +2133,6 @@ namespace Lex
             var idx = ret.IndexOf(chr);
             var countright = ret.RightCount(chr);
             var str = ret.Remove(idx, countright + 1);
-
-
 
             return str;
         }
