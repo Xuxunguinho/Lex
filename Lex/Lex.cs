@@ -9,11 +9,11 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using  System.IO;
+using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Lex
-{    //Copyright (c) https://github.com/Xuxunguinho All rights reserved. and others
+{ //Copyright (c) https://github.com/Xuxunguinho All rights reserved. and others
     public static partial class Lex
     {
         // Type is...
@@ -135,6 +135,28 @@ namespace Lex
         }
 
         /// <summary>
+        /// Compare values of 2 items of the object class.  why not <x1.Equals(x2)> ?
+        /// i noticed that c# has a little problem when the case is to make this kind of comparison
+        /// </summary>
+        /// <param name="x1"></param>
+        /// <param name="x2"></param>
+        /// <returns></returns>
+        public static bool Compare(this object x1, object x2)
+        {
+            switch (x1)
+            {
+                case double _:
+                    return x1.ToString() == x2.ToString();
+                case int _:
+                    return x1.ToString() == x2.ToString();
+                case float _:
+                    return x1.ToString() == x2.ToString();
+                default:
+                    return (x1.Equals(x2));
+            }
+        }
+
+        /// <summary>
         /// Converte o Objecto para o Determinado tipo T
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -187,6 +209,7 @@ namespace Lex
 
                 props[i].SetValue(result, propsConvert[name].GetValue(obj));
             }
+
             return result;
         }
 
@@ -214,6 +237,7 @@ namespace Lex
                     continue;
                 }
             }
+
             return result;
         }
 
@@ -241,6 +265,7 @@ namespace Lex
                     continue;
                 }
             }
+
             return result;
         }
 
@@ -274,6 +299,7 @@ namespace Lex
                     continue;
                 }
             }
+
             return result;
         }
 
@@ -316,6 +342,7 @@ namespace Lex
             {
                 numreturn += ("" + 0);
             }
+
             return numreturn.ToInt();
         }
 
@@ -357,6 +384,7 @@ namespace Lex
             {
                 numreturn += ("" + 0);
             }
+
             return numreturn.ToDouble();
         }
 
@@ -398,6 +426,7 @@ namespace Lex
             {
                 numreturn += ("" + 0);
             }
+
             return numreturn.ToLong();
         }
 
@@ -417,6 +446,7 @@ namespace Lex
             {
                 numreturn += ("" + 0);
             }
+
             return number - numreturn.ToInt();
         }
 
@@ -448,9 +478,11 @@ namespace Lex
                     {
                         idx = (int) Math.Abs(Math.Sqrt(length));
                     }
+
                     break;
                 }
             }
+
             if (n.Length < 2) return number;
             var numreturn = n.Substring(idx, length - idx);
             //for (var i = 1; i <= length-idx; i++)
@@ -489,9 +521,11 @@ namespace Lex
                     {
                         idx = (int) Math.Abs(Math.Sqrt(length));
                     }
+
                     break;
                 }
             }
+
             if (n.Length < 2) return number;
             var numreturn = n.Substring(idx, length - idx);
             //for (var i = 1; i <= length-idx; i++)
@@ -638,6 +672,7 @@ namespace Lex
                 f();
             }
         }
+
         /// <summary>
         /// Convert Any Object To Byte Array
         /// </summary>
@@ -651,7 +686,6 @@ namespace Lex
             var star = ms.ToArray();
             ms.Dispose();
             return star;
-
         }
         // ---------- Dictionary --------------
 
@@ -674,10 +708,10 @@ namespace Lex
         // ---------- DBNull value --------------
 
         // Note the "where" constraint, only value types can be used as Nullable<T> types.
-        // Otherwise, we get a bizzare error that doesn't really make it clear that T needs to be restricted as a value type.
+        // Otherwise, we get a bizzare error that doesn't really make it clear that T needs to be restricted as a value class.
         public static object AsDbNull<T>(this T? item) where T : struct
         {
-            // If the item is null, return DBNull.Value, otherwise return the item.
+            // If the class is null, return DBNull.Value, otherwise return the class.
             return item as object ?? DBNull.Value;
         }
 
@@ -785,7 +819,7 @@ namespace Lex
         }
 
         /// <summary>
-        ///  retorna um conjunto de item sem singulares dependendo do criterio do desenvolvedor
+        ///  retorna um conjunto de class sem singulares dependendo do criterio do desenvolvedor
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="source"></param>
@@ -812,6 +846,7 @@ namespace Lex
                         result.Add(item);
                     }
                 }
+
                 return result;
             }
             catch (Exception e)
@@ -843,12 +878,14 @@ namespace Lex
                         finalvalue = value;
                         continue;
                     }
+
                     props = TypeDescriptor.GetProperties(value);
                     var finalProp = enumerable[i + 1];
                     if (value is null) return new object();
                     finalvalue = props[finalProp]?.GetValue(value);
                     break;
                 }
+
                 return finalvalue;
             }
             catch (Exception e)
@@ -878,13 +915,43 @@ namespace Lex
                     finalvalue = value;
                     continue;
                 }
+
                 props = TypeDescriptor.GetProperties(value);
                 var finalProp = enumerable[i + 1];
                 if (value is null) return new object();
                 finalvalue = props[finalProp]?.GetValue(value);
                 break;
             }
+
             return finalvalue;
+        }
+        /// <summary>
+        ///  returns the field type
+        /// </summary>
+        /// <param name="fields"></param>
+        /// <param name="class"></param>
+        /// <returns></returns>
+        public static Type GetFieldType<T>(this T @class, IEnumerable<string> fields)
+        {
+            Type fieldType = null;
+            var enumerable = fields as string[] ?? fields.ToArray();
+            for (var i = 0; i < enumerable.Count(); i++)
+            {
+                var props = TypeDescriptor.GetProperties(@class);
+                var type = props[enumerable[i]]?.GetType();
+
+                if (i >= enumerable.Length - 1)
+                {
+                    fieldType = type;
+                    continue;
+                }
+                props = TypeDescriptor.GetProperties(type);
+                var finalProp = enumerable[i + 1];
+                if (type is null) return null;
+                fieldType = props[finalProp]?.GetType();
+                break;
+            }
+            return fieldType;
         }
 
         public static void SetDynValue<T>(this T item, object value, IEnumerable<string> fields)
@@ -906,6 +973,7 @@ namespace Lex
                         props[finalProp].SetValue(i == 0 ? item : temp, value);
                         continue;
                     }
+
                     props = TypeDescriptor.GetProperties(temp);
                     finalProp = enumerable[i + 1];
                     props[finalProp].SetValue(temp, value);
@@ -937,6 +1005,7 @@ namespace Lex
                         finalvalue2 = value2;
                         continue;
                     }
+
                     props = TypeDescriptor.GetProperties(value1);
                     var finalProp = enumerable[i + 1];
                     if (value1 is null) return false;
@@ -944,6 +1013,7 @@ namespace Lex
                     finalvalue2 = props[finalProp]?.GetValue(value2);
                     break;
                 }
+
                 return finalvalue1 != null && finalvalue1.Equals(finalvalue2);
             }
             catch (Exception e)
@@ -984,7 +1054,7 @@ namespace Lex
         }
 
         /// <summary>
-        /// Remove a duplicacao comparando um item dos elementos de propriedade
+        /// Remove a duplicacao comparando um class dos elementos de propriedade
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="source"></param>
@@ -1087,6 +1157,7 @@ namespace Lex
                 var idx = source.IndexOf(x);
                 source.RemoveAt(idx);
             }
+
             return source;
         }
 
@@ -1102,6 +1173,7 @@ namespace Lex
                 if (remove.Contains(it))
                     remove.Remove(it);
             }
+
             return remove;
         }
 
@@ -1115,6 +1187,7 @@ namespace Lex
                     if (n.Key[i] == key)
                         c = n.Value[i];
                 }
+
                 //c = t.Value.();
             });
             return c;
@@ -1156,9 +1229,10 @@ namespace Lex
                     {
                         values[i] = props[i].GetValue(item);
                     }
+
                     table.Rows.Add(values);
                 }
-                catch (Exception )
+                catch (Exception)
                 {
                     continue;
                 }
@@ -1197,6 +1271,7 @@ namespace Lex
                             prop?.PropertyType?.BaseType ?? throw new InvalidOperationException());
                     }
                 }
+
                 var values = new object[props.Count];
                 foreach (var item in enumerable.ToList())
                 {
@@ -1273,6 +1348,7 @@ namespace Lex
                     words += NumWords(decPart) + " decimo milionezimo";
                     break;
             }
+
             return words;
         }
 
@@ -1317,8 +1393,10 @@ namespace Lex
                     {
                         words += NumWords(Math.Floor(n / pow)) + " " + suffixesArr[(power / 3) - 1];
                     }
+
                     n %= pow;
                 }
+
                 power -= 3;
             }
 
@@ -1329,6 +1407,7 @@ namespace Lex
                 else words += NumWords(Math.Floor(n / 1000)) + " mil";
                 n %= 1000;
             }
+
             if (0 <= n && n <= 999)
             {
                 if ((int) n / 100 > 0)
@@ -1392,6 +1471,7 @@ namespace Lex
                     var value = props[i].GetValue(item);
                     props[i].SetValue(tipo, value);
                 }
+
                 list.Add(tipo);
             }
 
@@ -1414,12 +1494,14 @@ namespace Lex
                 {
                     props[i].SetValue(tipo, item.ItemArray[i]);
                 }
+
                 list.Add(tipo);
             }
 
             return list;
         }
     }
+
     //Copyright (c) https://github.com/Xuxunguinho All rights reserved.
     public static partial class Lex
     {
@@ -1432,7 +1514,6 @@ namespace Lex
         /// <returns></returns>
         public static int RightCount<T>(this IEnumerable<T> source, T item)
         {
-
             var list = source?.ToList();
             if (list != null && !list.Any()) return 0;
 
@@ -1445,6 +1526,7 @@ namespace Lex
             }
             else return 0;
         }
+
         /// <summary>
         /// 
         /// </summary>
@@ -1465,8 +1547,9 @@ namespace Lex
             }
             else return 0;
         }
+
         /// <summary>
-        /// Obtem o item a esquerda do item especificado
+        /// Obtem o class a esquerda do class especificado
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="source"></param>
@@ -1484,8 +1567,8 @@ namespace Lex
             {
                 return default(T);
             }
-
         }
+
         public static IEnumerable<T> LeftItems<T>(this IEnumerable<T> source, T item)
         {
             var enumerable = source as T[] ?? source.ToArray();
@@ -1494,15 +1577,14 @@ namespace Lex
             var idx = enumerable.ToList().IndexOf(item);
             if (idx > 0)
             {
-
                 for (var i = 0; i < idx; i++)
                 {
                     listleft.Add(enumerable[i]);
                 }
+
                 return listleft;
             }
             else return new List<T>();
-
         }
 
         public static IEnumerable<T> LeftItems<T>(this IEnumerable<T> source, int index)
@@ -1516,16 +1598,16 @@ namespace Lex
             var idx = enumerable.ToList().IndexOf(item);
             if (idx > 0)
             {
-
                 for (var i = 0; i < idx; i++)
                 {
                     listleft.Add(enumerable[i]);
                 }
+
                 return listleft;
             }
             else return new List<T>();
-
         }
+
         public static IEnumerable<T> RightItems<T>(this IEnumerable<T> source, T item)
         {
             var enumerable = source as T[] ?? source.ToArray();
@@ -1535,15 +1617,14 @@ namespace Lex
             var list = enumerable.ToList();
             if (list.Count > idx)
             {
-
                 for (var i = idx + 1; i < list.Count; i++)
                 {
                     listleft.Add(enumerable[i]);
                 }
+
                 return listleft;
             }
             else return new List<T>();
-
         }
 
         public static IEnumerable<T> RightItems<T>(this IEnumerable<T> source, int index)
@@ -1558,16 +1639,16 @@ namespace Lex
             var list = enumerable.ToList();
             if (list.Count > idx)
             {
-
                 for (var i = idx + 1; i < list.Count; i++)
                 {
                     listleft.Add(enumerable[i]);
                 }
+
                 return listleft;
             }
             else return new List<T>();
-
         }
+
         /// <summary>
         /// 
         /// </summary>
@@ -1588,9 +1669,8 @@ namespace Lex
             {
                 return default(T);
             }
-
-
         }
+
         public static T LastOrdefaultItem<T>(this IEnumerable<T> source)
         {
             if (source == null) return default(T);
@@ -1644,7 +1724,8 @@ namespace Lex
         /// <param name="source"></param>
         /// <param name="setter"> metodo para setar os dados pretendidos</param>
         /// <param name="equater">Função condicional => representa a opcao Where</param>
-        public static bool Update<T>(this IEnumerable<T> items, List<T> source, Action<T, T> setter, Func<T, T, bool> equater)
+        public static bool Update<T>(this IEnumerable<T> items, List<T> source, Action<T, T> setter,
+            Func<T, T, bool> equater)
         {
             try
             {
@@ -1668,6 +1749,7 @@ namespace Lex
                         Parallel.ForEach(enumerable1.Where(x => equater(x, s)), x => setter(x, s));
                     }
                 }
+
                 return !deleteds.IsNullOrEmpty();
             }
             catch (Exception ex)
@@ -1698,12 +1780,13 @@ namespace Lex
             }
         }
 
-        private static bool Compare<T>(this T t1, T t2 ,string[] keys)
+        private static bool Compare<T>(this T t1, T t2, string[] keys)
         {
-            foreach (var ke in keys )
+            foreach (var ke in keys)
             {
                 if (!t1.CompareFromDynFieldsValue(t2, new[] {ke})) return false;
             }
+
             return true;
         }
 
@@ -1713,10 +1796,11 @@ namespace Lex
             {
                 if (source.IsNullOrEmpty()) return false;
                 var ks = keys.ToArray();
-                foreach (var ix in source )
+                foreach (var ix in source)
                 {
                     if (ix.Compare(compare, ks)) return true;
                 }
+
                 return false;
             }
             catch (Exception e)
@@ -1725,11 +1809,12 @@ namespace Lex
             }
         }
     }
+
     /// <summary>
     /// https://github.com/cliftonm 
-	/// Helpers for string manipulation.
-	/// </summary>
-	public static partial class Lex
+    /// Helpers for string manipulation.
+    /// </summary>
+    public static partial class Lex
     {
         /// <summary>
         /// Left of the first occurance of c
@@ -1750,6 +1835,7 @@ namespace Lex
 
             return ret;
         }
+
         /// <summary>
         /// Retorna o primeiro e ultimo Nome
         /// </summary>
@@ -1758,13 +1844,13 @@ namespace Lex
         [Obsolete("Use FirstAndLastWords")]
         public static string FirstAndLastName(this string nome)
         {
-
             var wds = nome?.Split(' ');
             if (wds != null && wds.Length <= 1) return nome;
             if (wds == null) return null;
             var str = $"{wds[0]} {wds[wds.Length - 1]}";
             return str;
         }
+
         public static string FirstAndLastWords(this string nome, bool forNames = false)
         {
             if (string.IsNullOrEmpty(nome)) return string.Empty;
@@ -1779,13 +1865,13 @@ namespace Lex
                 {
                     str = $"{wds[0]} {wds[wds.Length - 1]}";
                 }
-
             }
             else str = $"{wds[0]} {wds[wds.Length - 1]}";
 
 
             return str;
         }
+
         public static string SupressSpace(this string src)
         {
             var source = src.Split(' ');
@@ -1882,6 +1968,7 @@ namespace Lex
         {
             return src.Substring(0, src.Length - 1);
         }
+
         public static string RemoveFirstChar(this string src)
         {
             return src.Substring(0, 1);
@@ -1983,7 +2070,6 @@ namespace Lex
 
         public static string Between(this string src, string start, string end)
         {
-
             var count = src.Length - 2;
 
             var ret = string.Empty;
@@ -2003,7 +2089,6 @@ namespace Lex
 
         public static string BetweenEnds(this string src, char start, char end)
         {
-
             var ret = string.Empty;
             var idxStart = src.IndexOf(start);
 
@@ -2018,6 +2103,7 @@ namespace Lex
 
             return ret;
         }
+
         public static string BetweenEnds(this string src, string start, string end)
         {
             try
@@ -2116,6 +2202,7 @@ namespace Lex
 
             return ret;
         }
+
         public static string RemoveChar(this string src, char chr)
         {
             var ret = src ?? string.Empty;
@@ -2124,6 +2211,7 @@ namespace Lex
             var str = string.Empty;
             return src == null ? str : src.Where(x => x != chr).Aggregate(str, (current, x) => current + x);
         }
+
         public static string RemoveCharAndRight(this string src, char chr)
         {
             var ret = src ?? string.Empty;
@@ -2136,6 +2224,7 @@ namespace Lex
 
             return str;
         }
+
         public static bool IsNullOrEmpty(this string src)
         {
             return ((src == null) || (src == string.Empty));
@@ -2161,8 +2250,10 @@ namespace Lex
             {
                 return src[0].ToString().ToLower() + src?.Substring(1).ToLower();
             }
+
             return string.Empty;
         }
+
         /// <returns></returns>
         public static string CamelCaseTrimestre(this string src)
         {
@@ -2171,8 +2262,10 @@ namespace Lex
                 var words = src.Split('º');
                 return words[0].ToString().ToUpper() + "ºTrimestre";
             }
+
             return string.Empty;
         }
+
         /// <summary>
         /// Returns a Pascalcase string, where the first character is uppercase.
         /// </summary>
@@ -2212,6 +2305,7 @@ namespace Lex
 
             return sb.ToString();
         }
+
         public static string SeparateCamelCase(this string src)
         {
             var sb = new StringBuilder();
@@ -2313,18 +2407,18 @@ namespace Lex
         /// Returns all of A with null values for B if B doesn't exist.
         /// </summary>
         public static IEnumerable<TResult> LeftJoin<TSource, TInner, TKey, TResult>(this IEnumerable<TSource> source,
-                                                                                         IEnumerable<TInner> inner,
-                                                                                         Func<TSource, TKey> pk,
-                                                                                         Func<TInner, TKey> fk,
-                                                                                         Func<TSource, TInner, TResult> result)
+            IEnumerable<TInner> inner,
+            Func<TSource, TKey> pk,
+            Func<TInner, TKey> fk,
+            Func<TSource, TInner, TResult> result)
         {
             var _result = Enumerable.Empty<TResult>();
 
             _result = from s in source
-                      join i in inner
-                      on pk(s) equals fk(i) into joinData
-                      from left in joinData.DefaultIfEmpty()
-                      select result(s, left);
+                join i in inner
+                    on pk(s) equals fk(i) into joinData
+                from left in joinData.DefaultIfEmpty()
+                select result(s, left);
 
             return _result;
         }
@@ -2350,21 +2444,22 @@ namespace Lex
         /// Returns all of B with nulls for A if A doesn't exist.
         /// </summary>
         public static IEnumerable<TResult> RightJoin<TSource, TInner, TKey, TResult>(this IEnumerable<TSource> source,
-                                                                                         IEnumerable<TInner> inner,
-                                                                                         Func<TSource, TKey> pk,
-                                                                                         Func<TInner, TKey> fk,
-                                                                                         Func<TSource, TInner, TResult> result)
+            IEnumerable<TInner> inner,
+            Func<TSource, TKey> pk,
+            Func<TInner, TKey> fk,
+            Func<TSource, TInner, TResult> result)
         {
             var _result = Enumerable.Empty<TResult>();
 
             _result = from i in inner
-                      join s in source
-                      on fk(i) equals pk(s) into joinData
-                      from right in joinData.DefaultIfEmpty()
-                      select result(right, i);
+                join s in source
+                    on fk(i) equals pk(s) into joinData
+                from right in joinData.DefaultIfEmpty()
+                select result(right, i);
 
             return _result;
         }
+
         /*
 		Lambda: 
 
@@ -2385,19 +2480,17 @@ namespace Lex
         /// <summary>
         /// Returns both A and B, with nulls where A or B doesn't have a correlation to B or A.
         /// </summary>
-        public static IEnumerable<TResult> FullOuterJoinJoin<TSource, TInner, TKey, TResult>(this IEnumerable<TSource> source,
-                                                                                         IEnumerable<TInner> inner,
-                                                                                         Func<TSource, TKey> pk,
-                                                                                         Func<TInner, TKey> fk,
-                                                                                         Func<TSource, TInner, TResult> result)
+        public static IEnumerable<TResult> FullOuterJoinJoin<TSource, TInner, TKey, TResult>(
+            this IEnumerable<TSource> source,
+            IEnumerable<TInner> inner,
+            Func<TSource, TKey> pk,
+            Func<TInner, TKey> fk,
+            Func<TSource, TInner, TResult> result)
         {
-
             var left = source.LeftJoin(inner, pk, fk, result).ToList();
             var right = source.RightJoin(inner, pk, fk, result).ToList();
 
             return left.Union(right);
-
-
         }
 
         /*
@@ -2421,20 +2514,21 @@ namespace Lex
         /// <summary>
         /// Returns only A where B does NOT exists for A.
         /// </summary>
-        public static IEnumerable<TResult> LeftExcludingJoin<TSource, TInner, TKey, TResult>(this IEnumerable<TSource> source,
-                                                                                         IEnumerable<TInner> inner,
-                                                                                         Func<TSource, TKey> pk,
-                                                                                         Func<TInner, TKey> fk,
-                                                                                         Func<TSource, TInner, TResult> result)
+        public static IEnumerable<TResult> LeftExcludingJoin<TSource, TInner, TKey, TResult>(
+            this IEnumerable<TSource> source,
+            IEnumerable<TInner> inner,
+            Func<TSource, TKey> pk,
+            Func<TInner, TKey> fk,
+            Func<TSource, TInner, TResult> result)
         {
             var _result = Enumerable.Empty<TResult>();
 
             _result = from s in source
-                      join i in inner
-                      on pk(s) equals fk(i) into joinData
-                      from left in joinData.DefaultIfEmpty()
-                      where left == null
-                      select result(s, left);
+                join i in inner
+                    on pk(s) equals fk(i) into joinData
+                from left in joinData.DefaultIfEmpty()
+                where left == null
+                select result(s, left);
 
             return _result;
         }
@@ -2460,20 +2554,21 @@ namespace Lex
         /// <summary>
         /// Returns only B where A does not exist for B.
         /// </summary>
-        public static IEnumerable<TResult> RightExcludingJoin<TSource, TInner, TKey, TResult>(this IEnumerable<TSource> source,
-                                                                                 IEnumerable<TInner> inner,
-                                                                                 Func<TSource, TKey> pk,
-                                                                                 Func<TInner, TKey> fk,
-                                                                                 Func<TSource, TInner, TResult> result)
+        public static IEnumerable<TResult> RightExcludingJoin<TSource, TInner, TKey, TResult>(
+            this IEnumerable<TSource> source,
+            IEnumerable<TInner> inner,
+            Func<TSource, TKey> pk,
+            Func<TInner, TKey> fk,
+            Func<TSource, TInner, TResult> result)
         {
             var _result = Enumerable.Empty<TResult>();
 
             _result = from i in inner
-                      join s in source
-                      on fk(i) equals pk(s) into joinData
-                      from right in joinData.DefaultIfEmpty()
-                      where right == null
-                      select result(right, i);
+                join s in source
+                    on fk(i) equals pk(s) into joinData
+                from right in joinData.DefaultIfEmpty()
+                where right == null
+                select result(right, i);
 
             return _result;
         }
@@ -2499,11 +2594,12 @@ namespace Lex
         /// <summary>
         /// Returns A and B where A and B do not reference each other.
         /// </summary>
-        public static IEnumerable<TResult> FullExcludingJoin<TSource, TInner, TKey, TResult>(this IEnumerable<TSource> source,
-                                                                                    IEnumerable<TInner> inner,
-                                                                                    Func<TSource, TKey> pk,
-                                                                                    Func<TInner, TKey> fk,
-                                                                                    Func<TSource, TInner, TResult> result)
+        public static IEnumerable<TResult> FullExcludingJoin<TSource, TInner, TKey, TResult>(
+            this IEnumerable<TSource> source,
+            IEnumerable<TInner> inner,
+            Func<TSource, TKey> pk,
+            Func<TInner, TKey> fk,
+            Func<TSource, TInner, TResult> result)
         {
             var enumerable = source as TSource[] ?? source.ToArray();
             var inners = inner as TInner[] ?? inner.ToArray();
@@ -2512,15 +2608,19 @@ namespace Lex
 
             return left.Union(right);
         }
+
         public class TypeInconsistenceException : Exception
         {
             private string _message;
+
             public TypeInconsistenceException(string message)
             {
                 _message = message;
             }
         }
-        public static IEnumerable<TResult> Merge<TResult>(this IEnumerable<TResult> source, IEnumerable<TResult> sourceToMerge)
+
+        public static IEnumerable<TResult> Merge<TResult>(this IEnumerable<TResult> source,
+            IEnumerable<TResult> sourceToMerge)
         {
             if (source.GetType() != sourceToMerge.GetType())
                 throw new TypeInconsistenceException("the 'source Type is Diferent then 'SourceToMerce'");
@@ -2532,8 +2632,4 @@ namespace Lex
             return xs;
         }
     }
-
-
-
-
 }

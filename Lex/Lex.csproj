@@ -7,10 +7,22 @@
 
   <ItemGroup>
     <Compile Remove="NoSQLiteXDynamics.cs" />
+    <Compile Remove="obj\Debug\**" />
+    <Compile Remove="obj\**" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="runtime.win7-x64.Microsoft.NETCore.Runtime.CoreCLR" Version="1.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="obj\Debug\**" />
+    <EmbeddedResource Remove="obj\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="obj\Debug\**" />
+    <None Remove="obj\**" />
   </ItemGroup>
 
 </Project>
