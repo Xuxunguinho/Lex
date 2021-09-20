@@ -868,9 +868,9 @@ namespace Lex
             {
                 object finalvalue = null;
                 var enumerable = fields as string[] ?? fields.ToArray();
+                var props = TypeDescriptor.GetProperties(item);
                 for (var i = 0; i <= enumerable.Count() - 1; i++)
                 {
-                    var props = TypeDescriptor.GetProperties(item);
                     var value = props[enumerable[i]]?.GetValue(item);
 
                     if (i >= enumerable.Length - 1)
@@ -905,11 +905,10 @@ namespace Lex
         {
             object finalvalue = null;
             var enumerable = fields as string[] ?? fields.ToArray();
+            var props = TypeDescriptor.GetProperties(item);
             for (var i = 0; i <= enumerable.Count() - 1; i++)
             {
-                var props = TypeDescriptor.GetProperties(item);
                 var value = props[enumerable[i]]?.GetValue(item);
-
                 if (i >= enumerable.Length - 1)
                 {
                     finalvalue = value;
@@ -925,31 +924,28 @@ namespace Lex
 
             return finalvalue;
         }
+
         /// <summary>
         ///  returns the field type
         /// </summary>
-        /// <param name="fields"></param>
+        /// <param name="desserializedExpessionfields"></param>
         /// <param name="class"></param>
         /// <returns></returns>
-        public static Type GetFieldType<T>(this T @class, IEnumerable<string> fields)
+        public static Type GetFieldType<T>( IEnumerable<string> desserializedExpessionfields)
         {
-            Type fieldType = null;
-            var enumerable = fields as string[] ?? fields.ToArray();
-            for (var i = 0; i < enumerable.Count(); i++)
-            {
-                var props = TypeDescriptor.GetProperties(@class);
-                var type = props[enumerable[i]]?.GetType();
 
-                if (i >= enumerable.Length - 1)
-                {
-                    fieldType = type;
-                    continue;
-                }
+           var  @class =CreateInstance<T>();
+            Type fieldType = null;
+            var enumerable = desserializedExpessionfields as string[] ?? desserializedExpessionfields.ToArray();
+            var props = TypeDescriptor.GetProperties(typeof(T));
+            object type;
+            for (var i = 0; i < enumerable.Length; i++)
+            {
+                type = props[enumerable[i]]?.GetValue(@class) ?? props[enumerable[i]]?.PropertyType; 
+                fieldType = props[enumerable[i]]?.GetValue(@class)?.GetType() ?? props[enumerable[i]]?.PropertyType;
+                if (i <= enumerable.Length - 1) continue;
                 props = TypeDescriptor.GetProperties(type);
-                var finalProp = enumerable[i + 1];
-                if (type is null) return null;
-                fieldType = props[finalProp]?.GetType();
-                break;
+                fieldType = props[enumerable[i]]?.GetValue(@class)?.GetType() ?? props[enumerable[i]]?.PropertyType;
             }
             return fieldType;
         }
@@ -960,10 +956,10 @@ namespace Lex
             {
                 var enumerable = fields as string[] ?? fields.ToArray();
                 object temp;
+                var props = TypeDescriptor.GetProperties(item);
                 for (var i = 0; i <= enumerable.Count() - 1; i++)
 
                 {
-                    var props = TypeDescriptor.GetProperties(item);
                     temp = props[enumerable[i]]?.GetValue(item);
 
                     string finalProp;
@@ -986,16 +982,15 @@ namespace Lex
                 throw;
             }
         }
-
         public static bool CompareFromDynFieldsValue<T>(this T item, T item2, IEnumerable<string> fieldsMatch)
         {
             try
             {
                 object finalvalue1 = null, finalvalue2 = null;
                 var enumerable = fieldsMatch as string[] ?? fieldsMatch.ToArray();
+                var props = TypeDescriptor.GetProperties(item);
                 for (var i = 0; i <= enumerable.Count() - 1; i++)
                 {
-                    var props = TypeDescriptor.GetProperties(item);
                     var value1 = props[enumerable[i]]?.GetValue(item);
                     var value2 = props[enumerable[i]]?.GetValue(item2);
 
@@ -1445,7 +1440,7 @@ namespace Lex
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        private static T CreateInstance<T>()
+        public static T CreateInstance<T>()
         {
             var obj = TypeDescriptor.CreateInstance(null, typeof(T), null, null);
             return (T) obj;
@@ -2487,8 +2482,10 @@ namespace Lex
             Func<TInner, TKey> fk,
             Func<TSource, TInner, TResult> result)
         {
-            var left = source.LeftJoin(inner, pk, fk, result).ToList();
-            var right = source.RightJoin(inner, pk, fk, result).ToList();
+            var enumerable = source as TSource[] ?? source.ToArray();
+            var inners = inner as TInner[] ?? inner.ToArray();
+            var left = enumerable.LeftJoin(inners, pk, fk, result).ToList();
+            var right = enumerable.RightJoin(inners, pk, fk, result).ToList();
 
             return left.Union(right);
         }
