@@ -803,8 +803,8 @@ namespace Lex
             {
                 var props = TypeDescriptor.GetProperties(field.Body.GetType());
                 var obj = props["Operand"]?.GetValue(field.Body)?.ToString() ?? field.Body.ToString();
-                var strfinal = obj?.Split('.').RightItems(0);
-                return strfinal.ToArray();
+                var str = obj?.Split('.').RightItems(0);
+                return str?.ToArray();
             }
             catch (Exception e)
             {
@@ -812,7 +812,19 @@ namespace Lex
                 throw;
             }
         }
-
+        public static PropertyDescriptorCollection DeserializeProperties(this Type item)
+        {
+            try
+            {
+                var props = TypeDescriptor.GetProperties(item);
+                return props;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+        }
         [Obsolete()]
         public static void Iif<T>(this T targetControl, Expression<Func<bool, bool, bool>> actionExpression)
         {
@@ -924,6 +936,29 @@ namespace Lex
 
             return finalvalue;
         }
+        public static dynamic GetDynRuntimeValue<T>(this T item, IEnumerable<string> fields)
+        {
+            dynamic finalvalue = null;
+            var enumerable = fields as string[] ?? fields.ToArray();
+            var props = TypeDescriptor.GetProperties(item);
+            for (var i = 0; i <= enumerable.Count() - 1; i++)
+            {
+                var value = props[enumerable[i]]?.GetValue(item);
+                if (i >= enumerable.Length - 1)
+                {
+                    finalvalue = value;
+                    continue;
+                }
+
+                props = TypeDescriptor.GetProperties(value);
+                var finalProp = enumerable[i + 1];
+                if (value is null) return new object();
+                finalvalue = props[finalProp]?.GetValue(value);
+                break;
+            }
+
+            return finalvalue;
+        }
 
         /// <summary>
         ///  returns the field type
@@ -949,7 +984,37 @@ namespace Lex
             }
             return fieldType;
         }
+        public static Type GetFieldTypeNew<T>( IEnumerable<string> desserializedExpessionfields)
+        {
 
+            
+            Type fieldType = null;
+            var enumerable = desserializedExpessionfields.ToList();
+            var props = TypeDescriptor.GetProperties(typeof(T));
+            var temp = new List<string>();
+            var count = enumerable.Count;
+            while ( fieldType is null  )
+            {
+                for(var i = 0 ;i < count   ; i++)
+                {
+                    var x = enumerable[i];
+                    
+                    var ss = props.Find(x,true);
+                  
+                    if (ss is null) return null;
+                    
+                    if (ss.GetChildProperties().Count > 0 &&  i <  enumerable.Count - 1)
+                        props = ss.GetChildProperties();
+                    else
+                    {
+                        fieldType = ss.PropertyType;
+                    }
+                }
+            }
+            
+            return fieldType;
+        }
+    
         public static void SetDynValue<T>(this T item, object value, IEnumerable<string> fields)
         {
             try
